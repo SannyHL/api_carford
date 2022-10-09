@@ -52,7 +52,7 @@ class ModelsCars(str, enum.Enum):
 
 class Cars(Base):
     __tablename__ = 'cars'
-    id = Column(Integer, primary_key=True)
+    license_plate = Column(String(10), primary_key=True, index=True)
     color_car = Column(Enum(ColorCars))
     model_car = Column(Enum(ModelsCars))
     people_id = Column(Integer, ForeignKey('people.cpf'))
