@@ -41,6 +41,7 @@ class Person(Resource):
             people.email = data['email']
         if 'cars_quantity' in data:
             people.cars_quantity = data['cars_quantity']
+        people.save()
         
         response = {
                 'name':people.name,
@@ -54,7 +55,7 @@ class Person(Resource):
 
     def delete(self, cpf):
         people = People.query.filter_by(cpf=cpf).first()
-        message = 'Cadastro de id {} excluido com sucesso'.format(people.id)
+        message = 'Cadastro de CPF: {} excluido com sucesso'.format(people.cpf)
         people.delete()
         return {
             'status':'sucess',
@@ -88,10 +89,86 @@ class CreatePeople(Resource):
         }
         return response
 
+class Car(Resource):
+    def get(self, license_plate):
+        car = Cars.query.filter_by(license_plate = license_plate).first()
+        try:
+            response = {
+                'license_plate': car.license_plate,
+                'color_car': car.color_car,
+                'model_car': car.model_car,
+                'people_id': car.people_id 
+            } 
+        except AttributeError:
+                response = {
+                'status':'error',
+                'mensagem': 'Veículo não encontrado!' 
+                }
+        return response
+        
+
+    def put(self, license_plate):
+        car = Cars.query.filter_by(license_plate=license_plate).first()
+        data = request.json
+        if 'license_plate' in data:
+            car.license_plate=data['license_plate']
+        if 'color_car' in data:
+            car.color_car=data['color_car']
+        if 'model_car' in data:
+            car.model_car=data['model_car']
+        if 'people_id' in data:
+            car.people_id=data['people_id']
+        car.save()
+
+        response={
+            'license_plate': car.license_plate,
+            'color_car': car.color_car,
+            'model_car': car.model_car,
+            'people_id': car.people_id
+        }
+        return response
+
+    def delete(self, license_plate):
+        car = Cars.query.filter_by(license_plate=license_plate).firts()
+        mensagem = 'Cadastro de véiculo de placa {}, excluido com sucesso'.format(car.license_plate)
+        car.delete()
+        return {'status' : 'sucesso', 'mensagem': mensagem}
+
+class FindAllCars(Resource):
+    def get(self):
+        car = Cars.query.all()
+        response = [{
+            'license_plate': i.license_plate, 'color_car': i.color_car, 'model_car': i.model_car,
+            'people_id': i.people_id
+            }for i in car]
+        return response
+
+class CreateRegistrationCar(Resource):
+    def post(self):
+        data = request.json
+        car = Cars(
+            license_plate=data['license_plate'],
+            color_car=data['color_car'],
+            model_car=data['model_car'],
+            people_id=data['people_id']
+        )
+        car.save()
+        response = {
+            'license_plate': car.license_plate,
+            'color_car': car.color_car,
+            'model_car': car.model_car,
+            'people_id': car.people_id
+        }
+        return response
+
+
 
 api.add_resource(Person, '/people/<int:cpf>')
 api.add_resource(FindAllPeople, '/people')
 api.add_resource(CreatePeople, '/people')
+api.add_resource(Car, '/cars/<string:license_plate>')
+api.add_resource(FindAllCars, '/cars')
+api.add_resource(CreateRegistrationCar, '/cars')
 
 if __name__ == '__main__':
     app.run(debug=True)
